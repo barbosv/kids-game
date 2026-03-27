@@ -611,6 +611,11 @@ export class GameScene extends Phaser.Scene {
         animalKey: 'chicken',
         idleTexture: 'chicken-idle',
         jumpTexture: 'chicken-jump',
+        vehicleTextures: {
+          car: 'street-car',
+          bus: 'street-bus',
+          truck: 'street-truck',
+        },
       }
     }
     if (level === 2) {
@@ -620,6 +625,11 @@ export class GameScene extends Phaser.Scene {
         animalKey: 'frog',
         idleTexture: 'frog-idle',
         jumpTexture: 'frog-jump',
+        vehicleTextures: {
+          car: 'street-car',
+          bus: 'street-bus',
+          truck: 'street-truck',
+        },
       }
     }
     if (level === 3) {
@@ -643,6 +653,11 @@ export class GameScene extends Phaser.Scene {
         animalKey: 'cat',
         idleTexture: 'cat-idle',
         jumpTexture: 'cat-jump',
+        vehicleTextures: {
+          car: 'train-small',
+          bus: 'train-medium',
+          truck: 'train-large',
+        },
       }
     }
     return {

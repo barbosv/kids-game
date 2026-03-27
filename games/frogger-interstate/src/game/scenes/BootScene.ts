@@ -30,7 +30,9 @@ export class BootScene extends Phaser.Scene {
     this.ensureFrogTexture()
     this.ensureDogTexture()
     this.ensureCatTexture()
+    this.ensureStreetVehicleTextures()
     this.ensureSpaceshipTextures()
+    this.ensureTrainTextures()
     this.ensureBombTexture()
     this.ensurePowerTexture()
     this.ensureHeartTexture()
@@ -152,6 +154,35 @@ export class BootScene extends Phaser.Scene {
     g.destroy()
   }
 
+  private ensureStreetVehicleTextures() {
+    if (this.textures.exists('street-car') && this.textures.exists('street-bus') && this.textures.exists('street-truck')) return
+    const makeCar = (key: string, w: number, h: number, body: number, roof: number, accent: number) => {
+      const g = this.add.graphics()
+      g.fillStyle(body, 1)
+      g.fillRoundedRect(2, h * 0.38, w - 4, h * 0.45, 7)
+      g.fillStyle(roof, 1)
+      g.fillRoundedRect(w * 0.22, h * 0.2, w * 0.5, h * 0.26, 6)
+      g.fillStyle(0xdbeafe, 0.95)
+      g.fillRoundedRect(w * 0.27, h * 0.24, w * 0.18, h * 0.16, 2)
+      g.fillRoundedRect(w * 0.51, h * 0.24, w * 0.18, h * 0.16, 2)
+      g.fillStyle(accent, 0.95)
+      g.fillRect(6, h * 0.56, w - 12, 3)
+      g.fillStyle(0x111827, 1)
+      g.fillCircle(w * 0.26, h * 0.86, h * 0.11)
+      g.fillCircle(w * 0.74, h * 0.86, h * 0.11)
+      g.fillStyle(0xe5e7eb, 0.8)
+      g.fillCircle(w * 0.26, h * 0.86, h * 0.05)
+      g.fillCircle(w * 0.74, h * 0.86, h * 0.05)
+      g.lineStyle(2, 0x0f172a, 0.6)
+      g.strokeRoundedRect(2, h * 0.38, w - 4, h * 0.45, 7)
+      g.generateTexture(key, w, h)
+      g.destroy()
+    }
+    makeCar('street-car', 44, 28, 0xef4444, 0xdc2626, 0xfca5a5)
+    makeCar('street-bus', 70, 30, 0x2563eb, 0x1d4ed8, 0x93c5fd)
+    makeCar('street-truck', 92, 34, 0xf59e0b, 0xd97706, 0xfcd34d)
+  }
+
   private ensureSpaceshipTextures() {
     if (this.textures.exists('ship-small') && this.textures.exists('ship-medium') && this.textures.exists('ship-large')) return
     const makeShip = (key: string, w: number, h: number, body: number) => {
@@ -171,6 +202,38 @@ export class BootScene extends Phaser.Scene {
     makeShip('ship-small', 44, 28, 0x6ef0ff)
     makeShip('ship-medium', 70, 30, 0xffd166)
     makeShip('ship-large', 92, 34, 0xff6ea8)
+  }
+
+  private ensureTrainTextures() {
+    if (this.textures.exists('train-small') && this.textures.exists('train-medium') && this.textures.exists('train-large')) return
+    const makeTrain = (
+      key: string,
+      w: number,
+      h: number,
+      body: number,
+      stripe: number,
+    ) => {
+      const g = this.add.graphics()
+      g.fillStyle(body, 1)
+      g.fillRoundedRect(2, h * 0.2, w - 4, h * 0.62, 6)
+      g.fillStyle(stripe, 0.95)
+      g.fillRect(6, h * 0.42, w - 12, 4)
+      g.fillStyle(0xdbeafe, 0.95)
+      g.fillRoundedRect(8, h * 0.26, w * 0.18, h * 0.18, 2)
+      g.fillRoundedRect(w * 0.31, h * 0.26, w * 0.18, h * 0.18, 2)
+      g.fillRoundedRect(w * 0.54, h * 0.26, w * 0.18, h * 0.18, 2)
+      g.fillStyle(0x111827, 1)
+      g.fillCircle(w * 0.24, h * 0.86, h * 0.1)
+      g.fillCircle(w * 0.5, h * 0.86, h * 0.1)
+      g.fillCircle(w * 0.76, h * 0.86, h * 0.1)
+      g.lineStyle(2, 0x0f172a, 0.7)
+      g.strokeRoundedRect(2, h * 0.2, w - 4, h * 0.62, 6)
+      g.generateTexture(key, w, h)
+      g.destroy()
+    }
+    makeTrain('train-small', 44, 28, 0x64748b, 0x38bdf8)
+    makeTrain('train-medium', 70, 30, 0x475569, 0xf43f5e)
+    makeTrain('train-large', 92, 34, 0x334155, 0xf59e0b)
   }
 
   private ensureBombTexture() {
