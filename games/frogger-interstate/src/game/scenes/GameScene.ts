@@ -27,8 +27,9 @@ import { CollisionSystem } from '../systems/CollisionSystem'
 import { SpawnerSystem } from '../systems/SpawnerSystem'
 
 type LevelConfig = {
-  level: 1 | 2 | 3
+  level: 1 | 2 | 3 | 4
   animalName: string
+  animalKey: 'chicken' | 'frog' | 'dog' | 'cat'
   idleTexture: string
   jumpTexture: string
   vehicleTextures?: Partial<Record<VehicleKind, string>>
@@ -37,6 +38,46 @@ type LevelConfig = {
 type PowerKind = 'invincible' | 'heart'
 type Bomb = { sprite: Phaser.GameObjects.Image; bornAtMs: number }
 type PowerUp = { sprite: Phaser.GameObjects.Image; kind: PowerKind; expireAtMs: number }
+type AnimalRiddle = { question: string; answer: string }
+type AnimalKey = 'chicken' | 'frog' | 'dog' | 'cat'
+const MAX_MAIN_LEVELS = 4
+
+const RIDDLE_BANK: Record<AnimalKey, AnimalRiddle[]> = {
+  chicken: [
+    { question: 'Why did the chicken cross the road?', answer: 'To get to the other side.' },
+    { question: 'Why did the chicken cross the playground?', answer: 'To get to the other slide.' },
+    { question: 'Why did the chicken cross the road halfway?', answer: 'It wanted to lay it on the line.' },
+    { question: 'Why did the chicken cross the road with a band?', answer: 'To drum up some peck-tacular fans.' },
+    { question: 'Why did the chicken cross the road at noon?', answer: 'For an egg-stra sunny stroll.' },
+    { question: 'Why did the chicken cross the road twice?', answer: 'It forgot its peck-list.' },
+  ],
+  frog: [
+    { question: 'Why did the frog cross the road?', answer: 'To see what the chicken was doing.' },
+    { question: 'Why did the frog hop across the highway?', answer: 'To reach a lily pad on the other side.' },
+    { question: 'Why did the frog cross the road in one jump?', answer: 'It did not want to croak in traffic.' },
+    { question: 'Why did the frog cross the road at night?', answer: 'To catch the brightest bugs.' },
+    { question: 'Why did the frog cross the road during rain?', answer: 'Because every puddle looked like home.' },
+    { question: 'Why did the frog cross the road smiling?', answer: 'It heard a toad-ally good joke.' },
+  ],
+  dog: [
+    { question: 'Why did the dog cross the road?', answer: 'To get to the barking lot.' },
+    { question: 'Why did the dog cross the road so fast?', answer: 'It smelled treats on the other side.' },
+    { question: 'Why did the dog cross the road after the chicken?', answer: 'Someone had to fetch the punchline.' },
+    { question: 'Why did the dog cross the road with a leash?', answer: 'It was on a walk of fame.' },
+    { question: 'Why did the dog cross the road and back again?', answer: 'It thought the first trip was just practice.' },
+    { question: 'Why did the dog cross the road at sunset?', answer: 'To chase one last golden squirrel shadow.' },
+  ],
+  cat: [
+    { question: 'Why did the cat cross the road?', answer: 'To chase the mouse on the other side.' },
+    { question: 'Why did the cat cross the road quietly?', answer: 'It was on a stealth mission.' },
+    { question: 'Why did the cat cross the road and stare?', answer: 'It wanted to judge both sidewalks.' },
+    { question: 'Why did the cat cross the road at midnight?', answer: 'Because moonbeams make the best runways.' },
+    { question: 'Why did the cat cross the road with style?', answer: 'Every crossing is a catwalk.' },
+    { question: 'Why did the cat cross the road slowly?', answer: 'It was calculating every pounce.' },
+  ],
+}
+
+const lastRiddleIndexByAnimal: Partial<Record<AnimalKey, number>> = {}
 
 export class GameScene extends Phaser.Scene {
   constructor() {
@@ -51,7 +92,7 @@ export class GameScene extends Phaser.Scene {
   private spawner: SpawnerSystem | null = null
   private collision: CollisionSystem | null = null
 
-  private level = 1 as 1 | 2 | 3
+  private level = 1 as 1 | 2 | 3 | 4
   private accumulatedMs = 0
   private levelStartMs = 0
   private timerStarted = false
@@ -128,7 +169,7 @@ export class GameScene extends Phaser.Scene {
     timerStarted?: boolean
   }) {
     this.hasEnded = false
-    this.level = (data?.level ?? 1) as 1 | 2 | 3
+    this.level = Phaser.Math.Clamp(data?.level ?? 1, 1, MAX_MAIN_LEVELS) as 1 | 2 | 3 | 4
     this.levelConfig = this.getLevelConfig(this.level)
     this.accumulatedMs = data?.accumulatedMs ?? 0
     this.livesRemaining = data?.livesRemaining ?? MAX_LIVES
@@ -290,7 +331,7 @@ export class GameScene extends Phaser.Scene {
         ? `Invincible ${(Math.max(0, this.invincibleUntilMs - nowMs) / 1000).toFixed(1)}s`
         : 'None'
       this.uiText.setText(
-        `Level ${this.level}/3 (${this.levelConfig.animalName})   Lives ${this.livesRemaining}   Time ${(totalElapsedMs / 1000).toFixed(1)}s   Traffic x${difficultyMultiplier.toFixed(2)}   Power ${activePower}`,
+        `Level ${this.level}/${MAX_MAIN_LEVELS} (${this.levelConfig.animalName})   Lives ${this.livesRemaining}   Time ${(totalElapsedMs / 1000).toFixed(1)}s   Traffic x${difficultyMultiplier.toFixed(2)}   Power ${activePower}`,
       )
     }
   }
@@ -405,7 +446,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private scheduleNextBombSpawn(nowMs: number) {
-    const base = this.level === 1 ? 2800 : this.level === 2 ? 2000 : 1450
+    const base =
+      this.level === 1 ? 3300 : this.level === 2 ? 2800 : this.level === 3 ? 2000 : 1450
     this.nextBombSpawnMs = nowMs + base + Phaser.Math.Between(300, 900)
   }
 
@@ -471,28 +513,120 @@ export class GameScene extends Phaser.Scene {
 
   private advanceLevelOrWin(totalElapsedMs: number) {
     if (this.hasEnded) return
-    if (this.level < 3) {
-      this.hasEnded = true
-      this.scene.start('GameScene', {
-        level: (this.level + 1) as 1 | 2 | 3,
-        accumulatedMs: totalElapsedMs,
-        livesRemaining: this.livesRemaining,
-        timerStarted: true,
-      })
-      return
-    }
+
     this.hasEnded = true
-    this.scene.start('WinScene', {
-      runTimeMs: totalElapsedMs,
-      bonusUnlocked: totalElapsedMs <= BONUS_UNLOCK_TIME_MS,
-    })
+    const animalName = this.levelConfig.animalName
+    const riddle = this.getCrossingRiddle(animalName)
+    const clickBlocker = this.add
+      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.35)
+      .setDepth(49)
+      .setInteractive()
+    const card = this.add
+      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 160, 220, 0x0b1230, 0.95)
+      .setStrokeStyle(2, 0x5c6fb5, 0.85)
+      .setDepth(50)
+    const question = this.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 42, riddle.question, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '33px',
+        color: '#f5f7ff',
+        align: 'center',
+      })
+      .setOrigin(0.5, 0.5)
+      .setDepth(51)
+    const answer = this.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 20, riddle.answer, {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '25px',
+        align: 'center',
+        color: '#b8c2ff',
+      })
+      .setOrigin(0.5, 0.5)
+      .setDepth(51)
+      .setVisible(false)
+    const hint = this.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 76, 'Click or press Enter to reveal answer', {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '19px',
+        color: '#d7e2ff',
+      })
+      .setOrigin(0.5, 0.5)
+      .setDepth(51)
+
+    let revealed = false
+    const cleanup = () => {
+      clickBlocker.destroy()
+      card.destroy()
+      question.destroy()
+      answer.destroy()
+      hint.destroy()
+      this.input.keyboard?.off('keydown-ENTER', onAdvance)
+    }
+    const goNext = () => {
+      if (this.level < MAX_MAIN_LEVELS) {
+        this.scene.start('GameScene', {
+          level: (this.level + 1) as 1 | 2 | 3 | 4,
+          accumulatedMs: totalElapsedMs,
+          livesRemaining: this.livesRemaining,
+          timerStarted: true,
+        })
+        return
+      }
+      this.scene.start('WinScene', {
+        runTimeMs: totalElapsedMs,
+        bonusUnlocked: totalElapsedMs <= BONUS_UNLOCK_TIME_MS,
+        animalName,
+      })
+    }
+    const onAdvance = () => {
+      if (!revealed) {
+        revealed = true
+        answer.setVisible(true)
+        hint.setText('Click or press Enter to continue')
+        return
+      }
+      cleanup()
+      goNext()
+    }
+    clickBlocker.on('pointerdown', onAdvance)
+    this.input.keyboard?.on('keydown-ENTER', onAdvance)
+  }
+
+  private getCrossingRiddle(animalName: string): AnimalRiddle {
+    const lower = animalName.toLowerCase() as AnimalKey
+    const bank = RIDDLE_BANK[lower] ?? [{ question: `Why did the ${lower} cross the road?`, answer: 'To get to the other side.' }]
+    if (bank.length === 1) return bank[0]
+    const last = lastRiddleIndexByAnimal[lower] ?? -1
+    let idx = Phaser.Math.Between(0, bank.length - 1)
+    if (idx === last) idx = (idx + 1 + Phaser.Math.Between(0, bank.length - 2)) % bank.length
+    lastRiddleIndexByAnimal[lower] = idx
+    return bank[idx]
   }
 
   private getLevelConfig(level: number): LevelConfig {
+    if (level === 1) {
+      return {
+        level: 1,
+        animalName: 'Chicken',
+        animalKey: 'chicken',
+        idleTexture: 'chicken-idle',
+        jumpTexture: 'chicken-jump',
+      }
+    }
     if (level === 2) {
       return {
         level: 2,
+        animalName: 'Frog',
+        animalKey: 'frog',
+        idleTexture: 'frog-idle',
+        jumpTexture: 'frog-jump',
+      }
+    }
+    if (level === 3) {
+      return {
+        level: 3,
         animalName: 'Dog',
+        animalKey: 'dog',
         idleTexture: 'dog-idle',
         jumpTexture: 'dog-jump',
         vehicleTextures: {
@@ -502,19 +636,21 @@ export class GameScene extends Phaser.Scene {
         },
       }
     }
-    if (level === 3) {
+    if (level === 4) {
       return {
-        level: 3,
+        level: 4,
         animalName: 'Cat',
+        animalKey: 'cat',
         idleTexture: 'cat-idle',
         jumpTexture: 'cat-jump',
       }
     }
     return {
       level: 1,
-      animalName: 'Frog',
-      idleTexture: 'frog-idle',
-      jumpTexture: 'frog-jump',
+      animalName: 'Chicken',
+      animalKey: 'chicken',
+      idleTexture: 'chicken-idle',
+      jumpTexture: 'chicken-jump',
     }
   }
 

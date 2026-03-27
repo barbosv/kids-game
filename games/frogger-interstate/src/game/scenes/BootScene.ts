@@ -26,6 +26,7 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     // Placeholder textures so gameplay renders even before we wire CC0 assets.
+    this.ensureChickenTexture()
     this.ensureFrogTexture()
     this.ensureDogTexture()
     this.ensureCatTexture()
@@ -34,6 +35,7 @@ export class BootScene extends Phaser.Scene {
     this.ensurePowerTexture()
     this.ensureHeartTexture()
     this.ensureCollectibleTextures()
+    this.ensureTrexTexture()
     this.ensureGoalTexture()
     this.ensureMomTexture()
 
@@ -52,6 +54,50 @@ export class BootScene extends Phaser.Scene {
     g.fillCircle(22, 14, 3)
     g.generateTexture('frog-idle', FROG_WIDTH, FROG_HEIGHT)
     g.generateTexture('frog-jump', FROG_WIDTH, FROG_HEIGHT)
+    g.destroy()
+  }
+
+  private ensureChickenTexture() {
+    if (this.textures.exists('chicken-idle') && this.textures.exists('chicken-jump')) return
+    const g = this.add.graphics()
+    // Stylized chicken inspired by public-domain sprite references.
+    g.fillStyle(0xfff6d6, 1)
+    g.fillEllipse(32, 38, 38, 30)
+    g.fillCircle(24, 22, 11)
+    g.fillStyle(0xff9f43, 1)
+    g.fillTriangle(34, 22, 45, 26, 34, 30)
+    g.fillStyle(0xee5a5a, 1)
+    g.fillCircle(22, 11, 3)
+    g.fillCircle(26, 12, 3)
+    g.fillCircle(24, 9, 3)
+    g.fillStyle(0x1f2937, 1)
+    g.fillCircle(27, 21, 1.8)
+    g.fillStyle(0xf4c542, 1)
+    g.fillRect(27, 49, 3, 10)
+    g.fillRect(34, 49, 3, 10)
+    g.lineStyle(2, 0x1f2937, 0.45)
+    g.strokeEllipse(32, 38, 38, 30)
+    g.generateTexture('chicken-idle', 64, 64)
+
+    // Slightly lifted variant for jump.
+    g.clear()
+    g.fillStyle(0xfff6d6, 1)
+    g.fillEllipse(32, 34, 38, 30)
+    g.fillCircle(24, 18, 11)
+    g.fillStyle(0xff9f43, 1)
+    g.fillTriangle(34, 18, 45, 22, 34, 26)
+    g.fillStyle(0xee5a5a, 1)
+    g.fillCircle(22, 7, 3)
+    g.fillCircle(26, 8, 3)
+    g.fillCircle(24, 5, 3)
+    g.fillStyle(0x1f2937, 1)
+    g.fillCircle(27, 17, 1.8)
+    g.fillStyle(0xf4c542, 1)
+    g.fillRect(27, 47, 3, 9)
+    g.fillRect(34, 47, 3, 9)
+    g.lineStyle(2, 0x1f2937, 0.45)
+    g.strokeEllipse(32, 34, 38, 30)
+    g.generateTexture('chicken-jump', 64, 64)
     g.destroy()
   }
 
@@ -223,6 +269,32 @@ export class BootScene extends Phaser.Scene {
       g.generateTexture('item-mouse', 32, 32)
       g.destroy()
     }
+  }
+
+  private ensureTrexTexture() {
+    if (this.textures.exists('enemy-trex')) return
+    const g = this.add.graphics()
+    // Cartoon T-Rex for bonus chase mode.
+    g.fillStyle(0x4b7f3f, 1)
+    g.fillRoundedRect(8, 22, 72, 34, 12)
+    g.fillRoundedRect(48, 8, 34, 24, 10)
+    g.fillRoundedRect(18, 50, 11, 20, 4)
+    g.fillRoundedRect(42, 50, 11, 20, 4)
+    g.fillRoundedRect(50, 32, 9, 10, 3)
+    g.fillRoundedRect(58, 34, 9, 9, 3)
+    g.fillTriangle(8, 37, 0, 32, 8, 27)
+    g.fillTriangle(8, 46, 0, 52, 8, 56)
+    g.fillStyle(0x2b4a22, 1)
+    g.fillRect(52, 21, 16, 4)
+    g.fillStyle(0xffffff, 1)
+    g.fillCircle(72, 16, 4)
+    g.fillStyle(0x111827, 1)
+    g.fillCircle(73, 16, 2)
+    g.lineStyle(2, 0x1f3320, 0.8)
+    g.strokeRoundedRect(8, 22, 72, 34, 12)
+    g.strokeRoundedRect(48, 8, 34, 24, 10)
+    g.generateTexture('enemy-trex', 96, 80)
+    g.destroy()
   }
 
   private ensureGoalTexture() {

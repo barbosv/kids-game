@@ -19,11 +19,21 @@ export class WinScene extends Phaser.Scene {
     super('WinScene')
   }
 
-  create(data?: { runTimeMs?: number; bonusUnlocked?: boolean; bonusScore?: number; bonusAnimal?: string }) {
+  private isNameEntryOpen = false
+  private readonly maxNameLength = 32
+
+  create(data?: {
+    runTimeMs?: number
+    bonusUnlocked?: boolean
+    bonusScore?: number
+    bonusAnimal?: string
+    animalName?: string
+  }) {
     const runTimeMs = data?.runTimeMs ?? 0
     const bonusUnlocked = data?.bonusUnlocked ?? false
     const bonusScore = data?.bonusScore
     const bonusAnimal = data?.bonusAnimal ?? 'bonus'
+    const animalName = (data?.animalName ?? 'animal').toLowerCase()
     const sortedScores = [...sessionScores].sort((a, b) => a.timeMs - b.timeMs)
     const bestRecord = sortedScores[0] ?? null
 
@@ -39,19 +49,27 @@ export class WinScene extends Phaser.Scene {
       .text(
         GAME_WIDTH / 2,
         165,
-        `You finished all levels in ${formatTime(runTimeMs)}`,
+        `Why did the ${animalName} cross the road?`,
         {
           fontFamily: 'system-ui, sans-serif',
-          fontSize: '24px',
+          fontSize: '31px',
           color: '#c8d3ff',
         },
       )
       .setOrigin(0.5, 0.5)
 
+    const timing = this.add
+      .text(GAME_WIDTH / 2, 198, `You finished all levels in ${formatTime(runTimeMs)}`, {
+        fontFamily: 'ui-monospace, monospace',
+        fontSize: '20px',
+        color: '#d7e2ff',
+      })
+      .setOrigin(0.5, 0.5)
+
     const best = this.add
       .text(
         GAME_WIDTH / 2,
-        202,
+        228,
         `Best Time: ${bestRecord ? `${bestRecord.name} - ${formatTime(bestRecord.timeMs)}` : 'none'}`,
         {
           fontFamily: 'ui-monospace, monospace',
@@ -62,7 +80,7 @@ export class WinScene extends Phaser.Scene {
       .setOrigin(0.5, 0.5)
 
     const scoreCount = this.add
-      .text(GAME_WIDTH / 2, 230, `Scores saved this session: ${sessionScores.length}`, {
+      .text(GAME_WIDTH / 2, 252, `Scores saved this session: ${sessionScores.length}`, {
         fontFamily: 'ui-monospace, monospace',
         fontSize: '16px',
         color: '#b3ffd4',
@@ -74,7 +92,7 @@ export class WinScene extends Phaser.Scene {
       .map((r, i) => `#${i + 1} ${r.name} - ${formatTime(r.timeMs)}`)
       .join('\n')
     const recentScores = this.add
-      .text(GAME_WIDTH / 2, 284, `Top Scores\n${topScores}`, {
+      .text(GAME_WIDTH / 2, 300, `Top Scores\n${topScores}`, {
         fontFamily: 'ui-monospace, monospace',
         fontSize: '14px',
         color: '#d0ecff',
@@ -91,7 +109,7 @@ export class WinScene extends Phaser.Scene {
     const bonusText = this.add
       .text(
         GAME_WIDTH / 2,
-        352,
+        364,
         bonusTop ? `Top Bonus Scores\n${bonusTop}` : 'Top Bonus Scores\nnone yet',
         {
           fontFamily: 'ui-monospace, monospace',
@@ -122,7 +140,7 @@ export class WinScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
 
     const bonus = this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT - 130, bonusUnlocked ? 'Bonus Level' : 'Bonus Locked <20s needed', {
+      .text(GAME_WIDTH / 2, GAME_HEIGHT - 130, bonusUnlocked ? 'Bonus Level' : 'Bonus Locked <25s needed', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '28px',
         color: bonusUnlocked ? '#fef08a' : '#8f9abf',
@@ -167,6 +185,7 @@ export class WinScene extends Phaser.Scene {
     }
 
     const doRestart = () => {
+      if (this.isNameEntryOpen) return
       ensureSaved(() => {
         this.scene.start('GameScene', {
           level: 1,
@@ -176,8 +195,12 @@ export class WinScene extends Phaser.Scene {
         })
       })
     }
-    const doBonus = () => this.scene.start('BonusSelectScene', { runTimeMs })
+    const doBonus = () => {
+      if (this.isNameEntryOpen) return
+      this.scene.start('BonusSelectScene', { runTimeMs })
+    }
     const doFinish = () => {
+      if (this.isNameEntryOpen) return
       ensureSaved(() => {
         restart.disableInteractive()
         finish.disableInteractive()
@@ -199,6 +222,7 @@ export class WinScene extends Phaser.Scene {
 
     title.setDepth(10)
     result.setDepth(10)
+    timing.setDepth(10)
     best.setDepth(10)
     scoreCount.setDepth(10)
     recentScores.setDepth(10)
@@ -241,7 +265,7 @@ export class WinScene extends Phaser.Scene {
       .setDepth(41)
 
     const render = () => {
-      input.setText((current || '_').slice(0, 24))
+      input.setText(current || '_')
     }
     render()
 
@@ -251,10 +275,14 @@ export class WinScene extends Phaser.Scene {
       title.destroy()
       input.destroy()
       sub.destroy()
+      this.isNameEntryOpen = false
       const name = current.trim() || 'Player'
-      onSubmit(name.slice(0, 24))
+      onSubmit(name.slice(0, this.maxNameLength))
     }
+    this.isNameEntryOpen = true
     const keyHandler = (event: KeyboardEvent) => {
+      event.preventDefault()
+      event.stopPropagation()
       if (event.key === 'Enter') {
         finish()
         return
@@ -264,7 +292,11 @@ export class WinScene extends Phaser.Scene {
         render()
         return
       }
-      if (event.key.length === 1 && /^[a-zA-Z0-9 _-]$/.test(event.key) && current.length < 24) {
+      if (
+        event.key.length === 1 &&
+        /^[a-zA-Z0-9 _-]$/.test(event.key) &&
+        current.length < this.maxNameLength
+      ) {
         current += event.key
         render()
       }

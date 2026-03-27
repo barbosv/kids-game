@@ -35,6 +35,8 @@ export class BonusScene extends Phaser.Scene {
   private readonly bonusDurationMs = 30000
   private timerStarted = false
   private runTimeMs = 0
+  private trex: Phaser.GameObjects.Image | null = null
+  private lastTrexHitAtMs = -99999
   private itemConfig: ItemConfig = {
     label: 'flies',
     texture: 'item-fly',
@@ -68,6 +70,11 @@ export class BonusScene extends Phaser.Scene {
       .setDisplaySize(FROG_WIDTH, FROG_HEIGHT)
       .setDepth(6)
 
+    this.trex = this.add
+      .image(GAME_WIDTH - 70, this.laneToY(START_LANE_INDEX - 1), 'enemy-trex')
+      .setDisplaySize(76, 62)
+      .setDepth(5)
+
     this.spawnItems(10)
 
     this.hud = this.add
@@ -79,7 +86,7 @@ export class BonusScene extends Phaser.Scene {
       .setDepth(10)
 
     this.add
-      .text(GAME_WIDTH / 2, 24, `Bonus: Collect as many ${this.itemConfig.label} as possible in 30s!`, {
+      .text(GAME_WIDTH / 2, 24, `Bonus: Collect ${this.itemConfig.label} in 30s while T-Rex chases you!`, {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '24px',
         color: '#b7caff',
@@ -146,10 +153,12 @@ export class BonusScene extends Phaser.Scene {
       this.spawnItems(1)
     }
 
+    this.updateTrex(dtSec, nowMs)
+
     const elapsedMs = this.timerStarted ? nowMs - this.startMs : 0
     const timeLeftMs = Math.max(0, this.bonusDurationMs - elapsedMs)
     if (this.hud) {
-      this.hud.setText(`Time left: ${(timeLeftMs / 1000).toFixed(1)}s   Score: ${this.score}`)
+      this.hud.setText(`Time left: ${(timeLeftMs / 1000).toFixed(1)}s   Score: ${this.score}   Danger: T-Rex`)
     }
 
     if (elapsedMs >= this.bonusDurationMs) {
@@ -183,6 +192,8 @@ export class BonusScene extends Phaser.Scene {
   }
 
   private showComplete() {
+    this.trex?.destroy()
+    this.trex = null
     this.add
       .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 180, 240, 0x0d142c, 0.92)
       .setStrokeStyle(3, 0x526bb6, 0.8)
@@ -302,6 +313,34 @@ export class BonusScene extends Phaser.Scene {
       idleTexture: 'frog-idle',
       jumpTexture: 'frog-jump',
     }
+  }
+
+  private updateTrex(dtSec: number, nowMs: number) {
+    if (!this.trex || !this.animal || !this.animalSprite) return
+    const dx = this.animal.x - this.trex.x
+    const dy = this.animal.y - this.trex.y
+    const dist = Math.hypot(dx, dy)
+    if (dist > 0.001) {
+      const speed = this.timerStarted ? 84 : 58
+      const step = Math.min(dist, speed * dtSec)
+      this.trex.x += (dx / dist) * step
+      this.trex.y += (dy / dist) * step
+      if (Math.abs(dx) > 2) this.trex.setFlipX(dx < 0)
+    }
+
+    const hitCooldownMs = 900
+    if (nowMs - this.lastTrexHitAtMs < hitCooldownMs) return
+    if (!this.intersects(this.animal.getRect(), this.getSpriteRect(this.trex))) return
+    this.lastTrexHitAtMs = nowMs
+    this.score = Math.max(0, this.score - 2)
+    this.cameras.main.shake(90, 0.004)
+    this.tweens.add({
+      targets: this.animalSprite,
+      alpha: 0.35,
+      duration: 70,
+      yoyo: true,
+      repeat: 2,
+    })
   }
 }
 

@@ -51,5 +51,5 @@ export const HEART_POWERUP_CHANCE = 0.4
 export const POWER_SPAWN_MIN_MS = 3600
 export const POWER_SPAWN_MAX_MS = 7200
 
-export const BONUS_UNLOCK_TIME_MS = 20000
+export const BONUS_UNLOCK_TIME_MS = 25000
 
