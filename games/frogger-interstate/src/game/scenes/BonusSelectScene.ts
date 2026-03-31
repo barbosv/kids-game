@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { GAME_HEIGHT, GAME_WIDTH } from '../constants'
 
-export type BonusAnimal = 'frog' | 'dog' | 'cat'
+export type BonusAnimal = 'chicken' | 'frog' | 'dog' | 'cat'
 
 export class BonusSelectScene extends Phaser.Scene {
   constructor() {
@@ -30,21 +30,23 @@ export class BonusSelectScene extends Phaser.Scene {
       })
       .setOrigin(0.5, 0.5)
 
-    this.createChoice(GAME_WIDTH / 2 - 230, GAME_HEIGHT / 2 + 20, 'Frog', 'frog-idle', 'Collect flies', 'frog')
-    this.createChoice(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 20, 'Dog', 'dog-idle', 'Collect treats', 'dog')
-    this.createChoice(GAME_WIDTH / 2 + 230, GAME_HEIGHT / 2 + 20, 'Cat', 'cat-idle', 'Collect mice', 'cat')
+    this.createChoice(GAME_WIDTH / 2 - 330, GAME_HEIGHT / 2 + 20, 'Chicken', 'chicken-idle', 'Collect worms', 'chicken')
+    this.createChoice(GAME_WIDTH / 2 - 110, GAME_HEIGHT / 2 + 20, 'Frog', 'frog-idle', 'Collect flies', 'frog')
+    this.createChoice(GAME_WIDTH / 2 + 110, GAME_HEIGHT / 2 + 20, 'Dog', 'dog-idle', 'Collect treats', 'dog')
+    this.createChoice(GAME_WIDTH / 2 + 330, GAME_HEIGHT / 2 + 20, 'Cat', 'cat-idle', 'Collect mice', 'cat')
 
     this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT - 54, 'Press 1 Frog, 2 Dog, 3 Cat, or click a card', {
+      .text(GAME_WIDTH / 2, GAME_HEIGHT - 54, 'Press 1 Chicken, 2 Frog, 3 Dog, 4 Cat, or click a card', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '18px',
         color: '#a6b4e8',
       })
       .setOrigin(0.5, 0.5)
 
-    this.input.keyboard?.once('keydown-ONE', () => this.startBonus('frog'))
-    this.input.keyboard?.once('keydown-TWO', () => this.startBonus('dog'))
-    this.input.keyboard?.once('keydown-THREE', () => this.startBonus('cat'))
+    this.input.keyboard?.once('keydown-ONE', () => this.startBonus('chicken'))
+    this.input.keyboard?.once('keydown-TWO', () => this.startBonus('frog'))
+    this.input.keyboard?.once('keydown-THREE', () => this.startBonus('dog'))
+    this.input.keyboard?.once('keydown-FOUR', () => this.startBonus('cat'))
   }
 
   private createChoice(
@@ -55,7 +57,7 @@ export class BonusSelectScene extends Phaser.Scene {
     objective: string,
     animal: BonusAnimal,
   ) {
-    const card = this.add.rectangle(x, y, 190, 250, 0x1b2653, 0.95)
+    const card = this.add.rectangle(x, y, 170, 250, 0x1b2653, 0.95)
     card.setStrokeStyle(3, 0x5162a8, 0.85)
     card.setInteractive({ useHandCursor: true })
     card.on('pointerdown', () => this.startBonus(animal))

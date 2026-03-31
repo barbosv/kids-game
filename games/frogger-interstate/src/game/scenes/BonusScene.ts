@@ -78,7 +78,7 @@ export class BonusScene extends Phaser.Scene {
     this.spawnItems(10)
 
     this.hud = this.add
-      .text(12, 12, '', {
+      .text(12, 44, '', {
         fontFamily: 'ui-monospace, monospace',
         fontSize: '16px',
         color: '#e8ecff',
@@ -86,9 +86,9 @@ export class BonusScene extends Phaser.Scene {
       .setDepth(10)
 
     this.add
-      .text(GAME_WIDTH / 2, 24, `Bonus: Collect ${this.itemConfig.label} in 30s while T-Rex chases you!`, {
+      .text(GAME_WIDTH / 2, 18, `Bonus: Collect ${this.itemConfig.label} in 30s while T-Rex chases you!`, {
         fontFamily: 'system-ui, sans-serif',
-        fontSize: '24px',
+        fontSize: '21px',
         color: '#b7caff',
       })
       .setOrigin(0.5, 0.5)
@@ -291,6 +291,14 @@ export class BonusScene extends Phaser.Scene {
   }
 
   private getItemConfig(animal: BonusAnimal): ItemConfig {
+    if (animal === 'chicken') {
+      return {
+        label: 'worms',
+        texture: 'item-worm',
+        idleTexture: 'chicken-idle',
+        jumpTexture: 'chicken-jump',
+      }
+    }
     if (animal === 'dog') {
       return {
         label: 'treats',

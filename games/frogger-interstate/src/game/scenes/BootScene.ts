@@ -332,6 +332,24 @@ export class BootScene extends Phaser.Scene {
       g.generateTexture('item-mouse', 32, 32)
       g.destroy()
     }
+    if (!this.textures.exists('item-worm')) {
+      const g = this.add.graphics()
+      g.fillStyle(0xec4899, 1)
+      g.fillEllipse(7, 16, 10, 8)
+      g.fillEllipse(13, 14, 10, 8)
+      g.fillEllipse(19, 17, 10, 8)
+      g.fillEllipse(25, 15, 10, 8)
+      g.fillStyle(0xf9a8d4, 0.95)
+      g.fillCircle(6, 15, 2)
+      g.fillCircle(24, 14, 2)
+      g.lineStyle(1.5, 0xbe185d, 0.85)
+      g.beginPath()
+      g.moveTo(2, 17)
+      g.lineTo(29, 16)
+      g.strokePath()
+      g.generateTexture('item-worm', 32, 32)
+      g.destroy()
+    }
   }
 
   private ensureTrexTexture() {
