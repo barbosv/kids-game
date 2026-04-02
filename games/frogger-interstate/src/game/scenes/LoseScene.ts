@@ -1,5 +1,5 @@
 import Phaser from 'phaser'
-import { GAME_HEIGHT, GAME_WIDTH, MAX_LIVES } from '../constants'
+import { GAME_HEIGHT, GAME_WIDTH } from '../constants'
 
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
@@ -34,19 +34,15 @@ export class LoseScene extends Phaser.Scene {
       .setOrigin(0.5, 0.5)
 
     const sub = this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60, `Tap or press Enter to restart with ${MAX_LIVES} lives`, {
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 60, 'Tap or press Enter to choose mode and play again', {
         fontFamily: 'system-ui, sans-serif',
         fontSize: '22px',
         color: '#ffc2c2',
       })
       .setOrigin(0.5, 0.5)
 
-    this.input.keyboard?.once('keydown-ENTER', () =>
-      this.scene.start('GameScene', { level: 1, accumulatedMs: 0, livesRemaining: MAX_LIVES, timerStarted: false }),
-    )
-    this.input.once('pointerdown', () =>
-      this.scene.start('GameScene', { level: 1, accumulatedMs: 0, livesRemaining: MAX_LIVES, timerStarted: false }),
-    )
+    this.input.keyboard?.once('keydown-ENTER', () => this.scene.start('ModeSelectScene'))
+    this.input.once('pointerdown', () => this.scene.start('ModeSelectScene'))
 
     title.setDepth(10)
     sub.setDepth(10)

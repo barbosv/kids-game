@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { GAME_HEIGHT, GAME_WIDTH } from '../constants'
+import type { GameMode } from './ModeSelectScene'
 
 export type BonusAnimal = 'chicken' | 'frog' | 'dog' | 'cat'
 
@@ -9,9 +10,12 @@ export class BonusSelectScene extends Phaser.Scene {
   }
 
   private runTimeMs = 0
+  private gameMode: GameMode = 'crossing'
 
   create() {
-    this.runTimeMs = (this.scene.settings.data as { runTimeMs?: number } | undefined)?.runTimeMs ?? 0
+    const data = this.scene.settings.data as { runTimeMs?: number; gameMode?: GameMode } | undefined
+    this.runTimeMs = data?.runTimeMs ?? 0
+    this.gameMode = data?.gameMode ?? 'crossing'
     this.cameras.main.setBackgroundColor('#0f1530')
 
     this.add
@@ -80,7 +84,7 @@ export class BonusSelectScene extends Phaser.Scene {
   }
 
   private startBonus(animal: BonusAnimal) {
-    this.scene.start('BonusScene', { animal, runTimeMs: this.runTimeMs })
+    this.scene.start('BonusScene', { animal, runTimeMs: this.runTimeMs, gameMode: this.gameMode })
   }
 }
 

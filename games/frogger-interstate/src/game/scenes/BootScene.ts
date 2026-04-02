@@ -37,11 +37,12 @@ export class BootScene extends Phaser.Scene {
     this.ensurePowerTexture()
     this.ensureHeartTexture()
     this.ensureCollectibleTextures()
+    this.ensureBonusChestTexture()
     this.ensureTrexTexture()
     this.ensureGoalTexture()
     this.ensureMomTexture()
 
-    this.scene.start('GameScene')
+    this.scene.start('ModeSelectScene')
   }
 
   private ensureFrogTexture() {
@@ -350,6 +351,24 @@ export class BootScene extends Phaser.Scene {
       g.generateTexture('item-worm', 32, 32)
       g.destroy()
     }
+  }
+
+  private ensureBonusChestTexture() {
+    if (this.textures.exists('bonus-chest')) return
+    const g = this.add.graphics()
+    g.fillStyle(0x8b5a2b, 1)
+    g.fillRoundedRect(2, 10, 28, 20, 4)
+    g.fillStyle(0xb45309, 1)
+    g.fillRoundedRect(2, 6, 28, 8, 4)
+    g.fillStyle(0xfbbf24, 0.95)
+    g.fillRect(14, 6, 4, 24)
+    g.fillRect(2, 16, 28, 3)
+    g.fillStyle(0x111827, 1)
+    g.fillCircle(16, 18, 2)
+    g.lineStyle(2, 0x5b3b1a, 0.8)
+    g.strokeRoundedRect(2, 10, 28, 20, 4)
+    g.generateTexture('bonus-chest', 32, 32)
+    g.destroy()
   }
 
   private ensureTrexTexture() {

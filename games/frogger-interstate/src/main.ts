@@ -5,6 +5,7 @@ import { BonusSelectScene } from './game/scenes/BonusSelectScene'
 import { BootScene } from './game/scenes/BootScene'
 import { GameScene } from './game/scenes/GameScene'
 import { LoseScene } from './game/scenes/LoseScene'
+import { ModeSelectScene } from './game/scenes/ModeSelectScene'
 import { WinScene } from './game/scenes/WinScene'
 
 const rootEl = document.getElementById('app')
@@ -18,7 +19,7 @@ const config: Phaser.Types.Core.GameConfig = {
   backgroundColor: '#0b1020',
   render: { antialias: true, pixelArt: false },
   physics: { default: 'arcade', arcade: { debug: false } },
-  scene: [BootScene, GameScene, WinScene, LoseScene, BonusSelectScene, BonusScene],
+  scene: [BootScene, ModeSelectScene, GameScene, WinScene, LoseScene, BonusSelectScene, BonusScene],
 }
 
 new Phaser.Game(config)

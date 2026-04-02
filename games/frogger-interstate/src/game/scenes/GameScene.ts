@@ -25,6 +25,7 @@ import { Frog } from '../domain/Frog'
 import { Lane } from '../domain/Lane'
 import { CollisionSystem } from '../systems/CollisionSystem'
 import { SpawnerSystem } from '../systems/SpawnerSystem'
+import type { GameMode } from './ModeSelectScene'
 
 type LevelConfig = {
   level: 1 | 2 | 3 | 4
@@ -40,6 +41,14 @@ type Bomb = { sprite: Phaser.GameObjects.Image; bornAtMs: number }
 type PowerUp = { sprite: Phaser.GameObjects.Image; kind: PowerKind; expireAtMs: number }
 type AnimalRiddle = { question: string; answer: string }
 type AnimalKey = 'chicken' | 'frog' | 'dog' | 'cat'
+type RiverLog = {
+  sprite: Phaser.GameObjects.Image
+  laneIndex: number
+  direction: 1 | -1
+  speedPxPerSec: number
+  width: number
+  height: number
+}
 const MAX_MAIN_LEVELS = 4
 
 const RIDDLE_BANK: Record<AnimalKey, AnimalRiddle[]> = {
@@ -93,6 +102,7 @@ export class GameScene extends Phaser.Scene {
   private collision: CollisionSystem | null = null
 
   private level = 1 as 1 | 2 | 3 | 4
+  private gameMode: GameMode = 'crossing'
   private accumulatedMs = 0
   private levelStartMs = 0
   private timerStarted = false
@@ -104,6 +114,7 @@ export class GameScene extends Phaser.Scene {
 
   private bombs: Bomb[] = []
   private nextBombSpawnMs = 0
+  private logs: RiverLog[] = []
 
   private powerUps: PowerUp[] = []
   private nextPowerSpawnMs = 0
@@ -167,9 +178,11 @@ export class GameScene extends Phaser.Scene {
     accumulatedMs?: number
     livesRemaining?: number
     timerStarted?: boolean
+    gameMode?: GameMode
   }) {
     this.hasEnded = false
     this.level = Phaser.Math.Clamp(data?.level ?? 1, 1, MAX_MAIN_LEVELS) as 1 | 2 | 3 | 4
+    this.gameMode = data?.gameMode ?? 'crossing'
     this.levelConfig = this.getLevelConfig(this.level)
     this.accumulatedMs = data?.accumulatedMs ?? 0
     this.livesRemaining = data?.livesRemaining ?? MAX_LIVES
@@ -189,13 +202,20 @@ export class GameScene extends Phaser.Scene {
       .setDisplaySize(FROG_WIDTH, FROG_HEIGHT)
       .setDepth(8)
 
-    this.spawner = new SpawnerSystem({
-      scene: this,
-      lanes: this.lanes,
-      gameWidth: GAME_WIDTH,
-      textureByKind: this.levelConfig.vehicleTextures,
-    })
-    this.collision = new CollisionSystem()
+    if (this.gameMode === 'crossing') {
+      this.spawner = new SpawnerSystem({
+        scene: this,
+        lanes: this.lanes,
+        gameWidth: GAME_WIDTH,
+        textureByKind: this.levelConfig.vehicleTextures,
+      })
+      this.collision = new CollisionSystem()
+      this.logs = []
+    } else {
+      this.spawner = null
+      this.collision = null
+      this.initLogsMode()
+    }
 
     this.uiText = this.add
       .text(12, 10, '', {
@@ -209,7 +229,9 @@ export class GameScene extends Phaser.Scene {
       .text(
         12,
         34,
-        'Move: Arrow keys or WASD | Up/Down to move lanes | Left/Right for sideways dodge',
+        this.gameMode === 'crossing'
+          ? 'Move: Arrow keys or WASD | Up/Down to move lanes | Left/Right for sideways dodge'
+          : 'Logs Mode: Jump any direction, land on logs, avoid water and hazards',
         {
           fontFamily: 'system-ui, sans-serif',
           fontSize: '15px',
@@ -285,7 +307,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number) {
-    if (this.hasEnded || !this.animal || !this.animalSprite || !this.spawner || !this.collision) return
+    if (this.hasEnded || !this.animal || !this.animalSprite) return
     const nowMs = this.time.now
     this.handleKeyboardInput(nowMs)
 
@@ -293,7 +315,12 @@ export class GameScene extends Phaser.Scene {
     const totalElapsedMs = this.accumulatedMs + levelElapsedMs
     const difficultyMultiplier = Math.min(MAX_DIFFICULTY_MULTIPLIER, 1 + totalElapsedMs / DIFFICULTY_RAMP_EVERY_MS)
 
-    this.spawner.update({ deltaMs: delta, difficultyMultiplier })
+    if (this.gameMode === 'crossing') {
+      if (!this.spawner || !this.collision) return
+      this.spawner.update({ deltaMs: delta, difficultyMultiplier })
+    } else {
+      this.updateLogs(delta / 1000)
+    }
 
     const landed = this.animal.update(nowMs)
     this.animalSprite.x = this.animal.x
@@ -316,9 +343,17 @@ export class GameScene extends Phaser.Scene {
     this.updatePowerUps(nowMs)
     this.updateBombs(nowMs)
 
-    if (!isInvincible && this.collision.hasFrogCollision({ frog: this.animal, vehicles: this.spawner.getVehicles() })) {
-      this.consumeLife(totalElapsedMs)
-      return
+    if (!isInvincible) {
+      if (this.gameMode === 'crossing') {
+        if (!this.collision || !this.spawner) return
+        if (this.collision.hasFrogCollision({ frog: this.animal, vehicles: this.spawner.getVehicles() })) {
+          this.consumeLife(totalElapsedMs)
+          return
+        }
+      } else if (!this.animal.isJumping) {
+        const drowned = this.updateLogsSurvival(delta / 1000, totalElapsedMs)
+        if (drowned) return
+      }
     }
 
     if (landed && this.animal.laneIndex === HOME_LANE_INDEX) {
@@ -331,7 +366,7 @@ export class GameScene extends Phaser.Scene {
         ? `Invincible ${(Math.max(0, this.invincibleUntilMs - nowMs) / 1000).toFixed(1)}s`
         : 'None'
       this.uiText.setText(
-        `Level ${this.level}/${MAX_MAIN_LEVELS} (${this.levelConfig.animalName})   Lives ${this.livesRemaining}   Time ${(totalElapsedMs / 1000).toFixed(1)}s   Traffic x${difficultyMultiplier.toFixed(2)}   Power ${activePower}`,
+        `Level ${this.level}/${MAX_MAIN_LEVELS} (${this.levelConfig.animalName})   Lives ${this.livesRemaining}   Time ${(totalElapsedMs / 1000).toFixed(1)}s   ${this.gameMode === 'crossing' ? `Traffic x${difficultyMultiplier.toFixed(2)}` : 'River Logs'}   Power ${activePower}`,
       )
     }
   }
@@ -365,15 +400,22 @@ export class GameScene extends Phaser.Scene {
     const hasRoadTile = this.textures.exists('road-tile')
     for (const lane of this.lanes) {
       const laneTop = lane.y - LANE_HEIGHT / 2
-      if (lane.isRoad && hasRoadTile) {
+      if (lane.isRoad && hasRoadTile && this.gameMode === 'crossing') {
         this.add.tileSprite(0, laneTop, GAME_WIDTH, LANE_HEIGHT, 'road-tile').setOrigin(0, 0).setAlpha(1)
       } else {
-        g.fillStyle(0x16213e, 1)
+        const fill = lane.isRoad && this.gameMode === 'logs' ? 0x0d2a52 : 0x16213e
+        g.fillStyle(fill, 1)
         g.fillRect(0, laneTop, GAME_WIDTH, LANE_HEIGHT)
       }
       if (lane.isRoad) {
-        g.fillStyle(0xa0abff, 0.16)
-        for (let x = 70; x < GAME_WIDTH; x += 84) g.fillRect(x, lane.y - 3, 26, 3)
+        if (this.gameMode === 'crossing') {
+          g.fillStyle(0xa0abff, 0.16)
+          for (let x = 70; x < GAME_WIDTH; x += 84) g.fillRect(x, lane.y - 3, 26, 3)
+        } else {
+          g.fillStyle(0xc7d2fe, 0.08)
+          for (let x = 0; x < GAME_WIDTH; x += 64) g.fillRect(x, laneTop + 6, 34, 2)
+          for (let x = 24; x < GAME_WIDTH; x += 68) g.fillRect(x, laneTop + LANE_HEIGHT - 8, 26, 2)
+        }
       } else {
         g.fillStyle(0x2f7d32, lane.index === HOME_LANE_INDEX || lane.index === START_LANE_INDEX ? 0.22 : 0.3)
         g.fillRect(0, laneTop, GAME_WIDTH, LANE_HEIGHT)
@@ -381,6 +423,90 @@ export class GameScene extends Phaser.Scene {
     }
     g.lineStyle(3, 0x0b1020, 0.9)
     g.strokeRect(0, 0, GAME_WIDTH, GAME_HEIGHT)
+  }
+
+  private initLogsMode() {
+    this.logs = []
+    const roadLanes = this.lanes.filter((l) => l.isRoad)
+    const colors = [0x8b5a2b, 0xb45309, 0x92400e, 0x78350f, 0x5b3f2a]
+    const levelSpeedMultiplier = this.getLogsLevelSpeedMultiplier()
+    for (const lane of roadLanes) {
+      const count = 2 + Phaser.Math.Between(0, 2)
+      for (let i = 0; i < count; i++) {
+        const kind = Phaser.Math.Between(0, 2)
+        const width = kind === 0 ? 90 : kind === 1 ? 130 : 175
+        const height = 24 + kind * 2
+        const x = (i / count) * GAME_WIDTH + Phaser.Math.Between(10, 120)
+        const color = colors[Phaser.Math.Between(0, colors.length - 1)]
+        const logSprite = this.add.image(x % GAME_WIDTH, lane.y, this.makeLogTexture(width, height, color))
+        logSprite.setDisplaySize(width, height).setDepth(5)
+        const speed = (42 + kind * 12 + Phaser.Math.Between(0, 30)) * levelSpeedMultiplier
+        this.logs.push({
+          sprite: logSprite,
+          laneIndex: lane.index,
+          direction: lane.direction,
+          speedPxPerSec: speed,
+          width,
+          height,
+        })
+      }
+    }
+  }
+
+  private getLogsLevelSpeedMultiplier(): number {
+    if (this.level === 2) return 1.12
+    if (this.level === 3) return 1.26
+    if (this.level === 4) return 1.42
+    return 1
+  }
+
+  private makeLogTexture(width: number, height: number, color: number): string {
+    const key = `river-log-${width}x${height}-${color.toString(16)}`
+    if (this.textures.exists(key)) return key
+    const g = this.add.graphics()
+    g.fillStyle(color, 1)
+    g.fillRoundedRect(0, 0, width, height, 8)
+    g.fillStyle(0x3f2a1d, 0.35)
+    g.fillEllipse(width * 0.2, height * 0.5, 14, 10)
+    g.fillEllipse(width * 0.8, height * 0.5, 14, 10)
+    g.lineStyle(2, 0x2b1d13, 0.6)
+    g.strokeRoundedRect(0, 0, width, height, 8)
+    g.generateTexture(key, width, height)
+    g.destroy()
+    return key
+  }
+
+  private updateLogs(deltaSec: number) {
+    for (const log of this.logs) {
+      log.sprite.x += log.direction * log.speedPxPerSec * deltaSec
+      const wrap = log.width / 2 + 20
+      if (log.direction === 1 && log.sprite.x - wrap > GAME_WIDTH) {
+        log.sprite.x = -wrap
+      } else if (log.direction === -1 && log.sprite.x + wrap < 0) {
+        log.sprite.x = GAME_WIDTH + wrap
+      }
+    }
+  }
+
+  private updateLogsSurvival(deltaSec: number, totalElapsedMs: number): boolean {
+    if (!this.animal || this.gameMode !== 'logs') return false
+    const lane = this.lanes[this.animal.laneIndex]
+    if (!lane?.isRoad) return false
+    const frogRect = this.animal.getRect()
+    const onLog = this.logs.find((log) => log.laneIndex === lane.index && this.intersects(frogRect, this.getSpriteRect(log.sprite)))
+    if (!onLog) {
+      this.consumeLife(totalElapsedMs)
+      return true
+    }
+    this.animal.x += onLog.direction * onLog.speedPxPerSec * deltaSec
+    const minX = FROG_WIDTH / 2
+    const maxX = GAME_WIDTH - FROG_WIDTH / 2
+    if (this.animal.x < minX || this.animal.x > maxX) {
+      this.consumeLife(totalElapsedMs)
+      return true
+    }
+    this.animal.x = Math.max(minX, Math.min(maxX, this.animal.x))
+    return false
   }
 
   private tryStep(direction: -1 | 1) {
@@ -508,6 +634,7 @@ export class GameScene extends Phaser.Scene {
       accumulatedMs: totalElapsedMs,
       livesRemaining: this.livesRemaining,
       timerStarted: true,
+      gameMode: this.gameMode,
     })
   }
 
@@ -569,6 +696,7 @@ export class GameScene extends Phaser.Scene {
           accumulatedMs: totalElapsedMs,
           livesRemaining: this.livesRemaining,
           timerStarted: true,
+          gameMode: this.gameMode,
         })
         return
       }
@@ -576,6 +704,7 @@ export class GameScene extends Phaser.Scene {
         runTimeMs: totalElapsedMs,
         bonusUnlocked: totalElapsedMs <= BONUS_UNLOCK_TIME_MS,
         animalName,
+        gameMode: this.gameMode,
       })
     }
     const onAdvance = () => {

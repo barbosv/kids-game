@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
-import { GAME_HEIGHT, GAME_WIDTH, MAX_LIVES } from '../constants'
+import { GAME_HEIGHT, GAME_WIDTH } from '../constants'
+import type { GameMode } from './ModeSelectScene'
 
 type ScoreRecord = { name: string; timeMs: number }
 const sessionScores: ScoreRecord[] = []
@@ -28,11 +29,13 @@ export class WinScene extends Phaser.Scene {
     bonusScore?: number
     bonusAnimal?: string
     animalName?: string
+    gameMode?: GameMode
   }) {
     const runTimeMs = data?.runTimeMs ?? 0
     const bonusUnlocked = data?.bonusUnlocked ?? false
     const bonusScore = data?.bonusScore
     const bonusAnimal = data?.bonusAnimal ?? 'bonus'
+    const gameMode = data?.gameMode ?? 'crossing'
     this.launchConfetti()
 
     this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH - 80, GAME_HEIGHT - 80, 0x0b1230, 0.72).setStrokeStyle(2, 0x4f67a8, 0.7).setDepth(4)
@@ -204,17 +207,12 @@ export class WinScene extends Phaser.Scene {
     const doRestart = () => {
       if (this.isNameEntryOpen) return
       ensureSaved(() => {
-        this.scene.start('GameScene', {
-          level: 1,
-          accumulatedMs: 0,
-          livesRemaining: MAX_LIVES,
-          timerStarted: false,
-        })
+        this.scene.start('ModeSelectScene')
       })
     }
     const doBonus = () => {
       if (this.isNameEntryOpen) return
-      this.scene.start('BonusSelectScene', { runTimeMs })
+      this.scene.start('BonusSelectScene', { runTimeMs, gameMode })
     }
     const doFinish = () => {
       if (this.isNameEntryOpen) return
