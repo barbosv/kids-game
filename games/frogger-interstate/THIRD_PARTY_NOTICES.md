@@ -1,6 +1,8 @@
 
 # Third-Party Notices
 
+Ranger Park draws its woodland, people, and props with original procedural graphics. It does not add third-party art or fonts.
+
 This project includes CC0 assets downloaded from public sources for the frog/traffic visuals.
 
 ## Kenney - Racing Pack (CC0)
