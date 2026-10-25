@@ -63,6 +63,101 @@ body {
   min-height: 0;
   overflow: auto;
   padding: 16px;
+  background:
+    radial-gradient(circle at 12% 0%, #fff4cc 0, transparent 32%),
+    linear-gradient(#d9f1ff, #e7f2dc 240px);
+}
+
+.story-banner {
+  position: relative;
+  height: 148px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: linear-gradient(#7ec8f0 0%, #f6e3b8 62%, #7dbe6e 100%);
+  box-shadow: inset 0 -12px 0 rgba(62, 140, 70, 0.18);
+}
+
+.story-banner::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 110px;
+  width: 74px;
+  height: 26px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 22px 8px 0 8px #fff, 150px 16px 0 2px #fff;
+}
+
+.story-sun {
+  position: absolute;
+  top: 18px;
+  left: 28px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #ffd56a;
+  box-shadow: 0 0 0 12px rgba(255, 213, 106, 0.35);
+}
+
+.story-hill,
+.story-banner::after {
+  position: absolute;
+  right: -8%;
+  bottom: 0;
+  left: -8%;
+  height: 58px;
+  border-radius: 50% 50% 0 0;
+  background: #5ea56e;
+}
+
+.story-banner::after {
+  left: 18%;
+  height: 40px;
+  background: #7dbe6e;
+}
+
+.story-cabin {
+  position: absolute;
+  right: 48px;
+  bottom: 22px;
+  z-index: 1;
+  width: 58px;
+  height: 40px;
+  border: 3px solid #8a5a32;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: #f6e2c4;
+}
+
+.story-cabin::before {
+  content: '';
+  position: absolute;
+  top: -22px;
+  left: -12px;
+  border-right: 41px solid transparent;
+  border-bottom: 22px solid #c4554a;
+  border-left: 41px solid transparent;
+}
+
+.chapter {
+  margin: 0 0 4px;
+  color: #c47b12;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#profile-screen h1,
+.mission-panel h1 {
+  color: #1f4d34;
+  font-family: Georgia, Palatino, serif;
+}
+
+#profile-screen h1 {
+  font-size: 2.4rem;
 }
 
 #park-screen {
@@ -100,9 +195,10 @@ body {
 .group,
 .history-item {
   background: #fff8ee;
-  border: 2px solid #c9d7bc;
+  border: 2px solid #e2c99a;
   border-radius: 16px;
   padding: 12px;
+  box-shadow: 0 8px 0 rgba(31, 77, 52, 0.08);
 }
 
 .hat {
@@ -141,7 +237,7 @@ body {
   gap: 8px 14px;
   align-items: center;
   padding: 8px 12px;
-  background: #1f4d34;
+  background: linear-gradient(90deg, #6b4423, #1f4d34 55%);
   color: #f7fbf2;
 }
 
@@ -171,6 +267,19 @@ body {
 .destination-list {
   padding: 12px;
   overflow: auto;
+}
+
+.mission-panel {
+  background: #fff8ee;
+  box-shadow: inset 4px 0 0 #e2c99a;
+}
+
+.mission-panel p {
+  line-height: 1.45;
+}
+
+.challenge-dock {
+  background: #fbf6ea;
 }
 
 .park-stage {

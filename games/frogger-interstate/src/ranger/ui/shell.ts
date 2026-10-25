@@ -149,8 +149,10 @@ export class RangerShell {
         <button type="button" class="action" data-action="enter" data-profile-id="${id}" data-focus-key="enter:${id}">Play as ${esc(profile.nickname)}</button>
       </article>`
     }).join('')
-    return `<h1>Ranger Park</h1>
-      <p>Choose a ranger. Each child has a separate park on this device.</p>
+    return `<div class="story-banner" aria-hidden="true"><span class="story-sun"></span><span class="story-hill"></span><span class="story-cabin"></span></div>
+      <p class="chapter">The morning after the windstorm</p>
+      <h1>Ranger Park</h1>
+      <p>A big friendly wind crossed the park last night. It flattened the tents, pulled the planks off the creek bridge, and sent the deer up the far hill to wait. This morning Ava, Noah, and Lila are at the gate with their bedrolls. Pick a ranger. Each child keeps a separate park, and together you open this one again.</p>
       <div class="profile-grid">${cards}</div>
       <button type="button" class="secondary" data-action="open-parent" data-focus-key="open-parent">Grown-ups</button>`
   }
@@ -176,7 +178,8 @@ export class RangerShell {
       ? `<p class="feedback" data-feedback data-tone="${message.tone}" aria-live="polite">${esc(message.text)}</p>`
       : `<p class="feedback" data-feedback data-tone="info" aria-live="polite"></p>`
     const hintHtml = hint ? `<p class="hint" data-hint>${esc(hint.text)}</p>` : ''
-    return `<h1>${esc(missionTitle(profile))}</h1>
+    return `<p class="chapter">Field journal</p>
+      <h1>${esc(missionTitle(profile))}</h1>
       <p>${esc(missionText(profile))}</p>
       ${hintHtml}
       ${feedback}
@@ -269,40 +272,49 @@ function phaseOf(profile: Profile, screen: string): string {
 }
 
 function missionTitle(profile: Profile): string {
-  if (profile.replay && profile.replay.stage !== 'ready') return 'Replay challenge'
+  if (profile.replay && profile.replay.stage !== 'ready') return 'One more story'
   if (parkComplete(profile)) return 'The park is open'
-  if (profile.intro === 'welcome') return 'Welcome campers'
-  if (profile.intro === 'collect') return 'Gather supplies'
+  if (profile.intro === 'welcome') return 'Chapter 1 · At the gate'
+  if (profile.intro === 'collect') return 'Chapter 2 · The lost crate'
   const open = openProject(profile)
-  return PROJECT_LABEL[open ?? 'campsite'] ?? 'Ranger Park'
+  if (open === 'campsite') return 'Chapter 3 · Tents for three'
+  if (open === 'trail') return 'Chapter 4 · A way across'
+  if (open === 'lookout') return 'Chapter 5 · Deer hill'
+  return 'Ranger Park'
 }
 
 function missionText(profile: Profile): string {
   const replay = profile.replay
   if (replay && replay.stage !== 'ready') {
-    const ready = replay.stage === 'planValid' ? ' This plan works. Finishing a replay does not change the park.' : ''
-    return `${replay.attempt.instructions}${ready}`
+    const ready = replay.stage === 'planValid' ? ' This plan works. The park you already built stays built.' : ''
+    return `The campers want to practice that job again. ${replay.attempt.instructions}${ready}`
   }
   if (parkComplete(profile)) {
-    return `Campers have a campsite, a safe crossing, and a lookout. ${FIELD_NOTE}`
+    return `Lanterns glow over the tents, the creek bridge holds, and the deer have come back to the far meadow. Ava, Noah, and Lila stay on the trail to watch. ${FIELD_NOTE}`
   }
   if (profile.intro === 'welcome') {
-    return 'Three campers are at the gate. Welcome them to the park.'
+    return 'Ava, Noah, and Lila waited under the pines with muddy boots and hopeful faces. Welcome them so they know a ranger is here.'
   }
   if (profile.intro === 'collect') {
-    return 'A starter supply bundle is in the meadow. Gather it, then plan the campsite.'
+    return 'The wind rolled the supply crate into the meadow. Walk over and bring it back. The tents cannot rise without it.'
   }
   const open = openProject(profile)
-  if (!open || !profile.activeAttempt || profile.projects[open] === 'ready') {
-    if (open === 'campsite') return 'The campsite needs a supply plan before campers can stay.'
-    if (open === 'trail') return 'The trail crossing needs a route that stays inside the budget.'
-    return 'The lookout needs a careful layout so wildlife keeps its space.'
-  }
   const attempt = profile.activeAttempt
-  if (profile.projects[open] === 'planValid') {
-    return `${attempt.instructions} This plan works. Building uses ${attempt.supplyCost} supplies.`
+  if (!open || !attempt || profile.projects[open] === 'ready') {
+    if (open === 'campsite') return 'The campsite is a tumble of pegs and flat canvas. Ava, Noah, and Lila each need a tent. Plan the supplies, then the camp can come to life.'
+    if (open === 'trail') return 'The storm pulled the planks off the creek. The muddy shortcut is closed. Find a safe way across before anyone tries to jump the water.'
+    return 'You can hear the deer on the far hill. Walking into their meadow would send them away. Plan a lookout on safe ground so the campers can watch from the trail.'
   }
-  return attempt.instructions
+  const why =
+    open === 'campsite'
+      ? 'Give every camper the supplies their tent needs. '
+      : open === 'trail'
+        ? 'Pick a route the campers can really walk. '
+        : 'Keep the deer meadow clear and connect the lookout to the trail. '
+  if (profile.projects[open] === 'planValid') {
+    return `${why}${attempt.instructions} The plan works. Building uses ${attempt.supplyCost} supplies.`
+  }
+  return `${why}${attempt.instructions}`
 }
 
 function missionButtons(profile: Profile): ButtonSpec[] {
@@ -334,12 +346,12 @@ function missionButtons(profile: Profile): ButtonSpec[] {
     }
     return buttons
   }
-  if (profile.intro === 'welcome') return [{ action: 'welcome', label: 'Welcome campers', primary: true }]
-  if (profile.intro === 'collect') return [{ action: 'walk', label: 'Walk to the meadow bundle', primary: true, attrs: { node: 'meadow' } }]
+  if (profile.intro === 'welcome') return [{ action: 'welcome', label: 'Welcome Ava, Noah, and Lila', primary: true }]
+  if (profile.intro === 'collect') return [{ action: 'walk', label: 'Fetch the meadow crate', primary: true, attrs: { node: 'meadow' } }]
   const open = openProject(profile)
   if (!open) return []
   if (profile.projects[open] === 'ready' || !profile.activeAttempt) {
-    const label = open === 'campsite' ? 'Inspect the campsite' : open === 'trail' ? 'Inspect the crossing' : 'Inspect the lookout'
+    const label = open === 'campsite' ? 'Sort the tent supplies' : open === 'trail' ? 'Find a way across' : 'Plan the lookout'
     return [{ action: 'start-challenge', label, primary: true, attrs: { family: open } }]
   }
   const buttons: ButtonSpec[] = [
@@ -348,7 +360,8 @@ function missionButtons(profile: Profile): ButtonSpec[] {
     { action: 'leave', label: 'Leave for now', attrs: { target: 'project' } },
   ]
   if (profile.projects[open] === 'planValid') {
-    buttons.unshift({ action: 'build', label: `Build the ${PROJECT_LABEL[open]?.toLowerCase() ?? 'project'}`, primary: true })
+    const buildLabel = open === 'campsite' ? 'Raise the tents' : open === 'trail' ? 'Lay the bridge' : 'Open the lookout'
+    buttons.unshift({ action: 'build', label: buildLabel, primary: true })
   }
   return buttons
 }

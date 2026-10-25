@@ -17,14 +17,14 @@ export type ParkNode = {
 }
 
 export const PARK_NODES: Record<ParkNodeId, ParkNode> = {
-  gate: { id: 'gate', x: 100, y: 430, label: 'Gate' },
-  center: { id: 'center', x: 270, y: 320, label: 'Visitor center' },
-  meadow: { id: 'meadow', x: 450, y: 450, label: 'Meadow supplies', bundleId: 'bundle-meadow' },
-  campsite: { id: 'campsite', x: 400, y: 160, label: 'Campsite' },
-  creek: { id: 'creek', x: 610, y: 100, label: 'Creek supplies', bundleId: 'bundle-creek' },
-  crossing: { id: 'crossing', x: 690, y: 300, label: 'Trail crossing' },
-  ridge: { id: 'ridge', x: 840, y: 450, label: 'Ridge supplies', bundleId: 'bundle-ridge' },
-  lookout: { id: 'lookout', x: 860, y: 150, label: 'Wildlife lookout' },
+  gate: { id: 'gate', x: 110, y: 450, label: 'Front gate' },
+  center: { id: 'center', x: 250, y: 340, label: 'Ranger cabin' },
+  meadow: { id: 'meadow', x: 430, y: 470, label: 'Meadow crate', bundleId: 'bundle-meadow' },
+  campsite: { id: 'campsite', x: 400, y: 214, label: 'Campsite' },
+  creek: { id: 'creek', x: 610, y: 156, label: 'Creek crate', bundleId: 'bundle-creek' },
+  crossing: { id: 'crossing', x: 700, y: 320, label: 'Creek crossing' },
+  ridge: { id: 'ridge', x: 860, y: 455, label: 'Ridge crate', bundleId: 'bundle-ridge' },
+  lookout: { id: 'lookout', x: 840, y: 200, label: 'Deer hill' },
 }
 
 export const PARK_NODE_LIST = Object.values(PARK_NODES)

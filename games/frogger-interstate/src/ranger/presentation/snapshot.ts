@@ -1,7 +1,7 @@
 import type { ProjectId } from '../content/types.ts'
 import { BUNDLES, type AvatarId } from '../content/world.ts'
 import type { Profile } from '../model/profile.ts'
-import { openProject } from '../rules/session.ts'
+import { openProject, parkComplete } from '../rules/session.ts'
 import type { ParkNodeId } from './layout.ts'
 
 export const HAT_COLORS: Record<AvatarId, number> = {
@@ -25,6 +25,8 @@ export type ParkSnapshot = {
   decorations: string[]
   showWildlife: boolean
   focusNodeId: ParkNodeId | null
+  speech: { text: string; nodeId: ParkNodeId } | null
+  showBedrolls: boolean
 }
 
 const SHIRTS = [0xe07a5f, 0x3d5a80, 0x81b29a, 0xf2cc8f, 0x6d597a]
@@ -68,5 +70,18 @@ export function parkSnapshot(profile: Profile): ParkSnapshot {
     decorations: [...profile.decorations],
     showWildlife: built.lookout,
     focusNodeId: focusNode(profile),
+    speech: speechFor(profile),
+    showBedrolls: profile.intro === 'welcome',
   }
+}
+
+function speechFor(profile: Profile): ParkSnapshot['speech'] {
+  if (profile.intro === 'welcome') return { text: 'The wind blew our tents down!', nodeId: 'gate' }
+  if (profile.intro === 'collect') return { text: 'Our crate rolled into the meadow!', nodeId: 'center' }
+  if (parkComplete(profile)) return { text: 'The deer came back. We watch from the trail.', nodeId: 'center' }
+  const open = openProject(profile)
+  if (open === 'campsite') return { text: 'Three campers. Three tents.', nodeId: 'center' }
+  if (open === 'trail') return { text: 'The creek bridge lost its planks!', nodeId: 'crossing' }
+  if (open === 'lookout') return { text: 'The deer are waiting on the hill.', nodeId: 'lookout' }
+  return null
 }
