@@ -1,0 +1,369 @@
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: system-ui, sans-serif;
+  background: #e7f2dc;
+  color: #1c2a22;
+}
+
+.ranger-app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #e7f2dc;
+}
+
+.ranger-app button,
+.ranger-app select,
+.ranger-app input {
+  min-height: 44px;
+  min-width: 44px;
+  font: inherit;
+  font-size: 1rem;
+  color: #1c2a22;
+}
+
+.ranger-app button {
+  border: 2px solid #1f4d34;
+  border-radius: 12px;
+  background: #fff8ee;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.ranger-app button.action {
+  background: #1f6b45;
+  color: #fff;
+  border-color: #14482d;
+  font-size: 1.125rem;
+  min-height: 48px;
+}
+
+.ranger-app button:focus-visible,
+.ranger-app select:focus-visible,
+.ranger-app input:focus-visible {
+  outline: 3px solid #0b3d91;
+  outline-offset: 2px;
+}
+
+.ranger-app h1,
+.ranger-app h2,
+.ranger-app p {
+  margin: 0 0 8px;
+}
+
+#profile-screen:not([hidden]) {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px;
+  background:
+    radial-gradient(circle at 12% 0%, #fff4cc 0, transparent 32%),
+    linear-gradient(#d9f1ff, #e7f2dc 240px);
+}
+
+.story-banner {
+  position: relative;
+  height: 148px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: linear-gradient(#7ec8f0 0%, #f6e3b8 62%, #7dbe6e 100%);
+  box-shadow: inset 0 -12px 0 rgba(62, 140, 70, 0.18);
+}
+
+.story-banner::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 110px;
+  width: 74px;
+  height: 26px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 22px 8px 0 8px #fff, 150px 16px 0 2px #fff;
+}
+
+.story-sun {
+  position: absolute;
+  top: 18px;
+  left: 28px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #ffd56a;
+  box-shadow: 0 0 0 12px rgba(255, 213, 106, 0.35);
+}
+
+.story-hill,
+.story-banner::after {
+  position: absolute;
+  right: -8%;
+  bottom: 0;
+  left: -8%;
+  height: 58px;
+  border-radius: 50% 50% 0 0;
+  background: #5ea56e;
+}
+
+.story-banner::after {
+  left: 18%;
+  height: 40px;
+  background: #7dbe6e;
+}
+
+.story-cabin {
+  position: absolute;
+  right: 48px;
+  bottom: 22px;
+  z-index: 1;
+  width: 58px;
+  height: 40px;
+  border: 3px solid #8a5a32;
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: #f6e2c4;
+}
+
+.story-cabin::before {
+  content: '';
+  position: absolute;
+  top: -22px;
+  left: -12px;
+  border-right: 41px solid transparent;
+  border-bottom: 22px solid #c4554a;
+  border-left: 41px solid transparent;
+}
+
+.chapter {
+  margin: 0 0 4px;
+  color: #c47b12;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#profile-screen h1,
+.mission-panel h1 {
+  color: #1f4d34;
+  font-family: Georgia, Palatino, serif;
+}
+
+#profile-screen h1 {
+  font-size: 2.4rem;
+}
+
+#park-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#park-screen[hidden] {
+  display: none;
+}
+
+.parent-panel:not([hidden]) {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  overflow: auto;
+  padding: 16px;
+  background: #f7fbf2;
+}
+
+.parent-panel[hidden] {
+  display: none;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.profile-card,
+.group,
+.history-item {
+  background: #fff8ee;
+  border: 2px solid #e2c99a;
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: 0 8px 0 rgba(31, 77, 52, 0.08);
+}
+
+.hat {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 3px solid #1c2a22;
+}
+
+.hat-pine { background: #2f6b45; }
+.hat-river { background: #2a6f97; }
+.hat-sunset { background: #d46a3a; }
+.hat-stone { background: #6b6258; }
+
+.avatar-choices,
+.button-row,
+.destination-list,
+.facility-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.avatar-choices button[aria-pressed='true'],
+.facility-row button[aria-pressed='true'],
+.destination-list button[aria-pressed='true'],
+.segment[aria-pressed='true'] {
+  border-color: #0b3d91;
+  box-shadow: inset 0 0 0 3px #0b3d91;
+}
+
+.status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, #6b4423, #1f4d34 55%);
+  color: #f7fbf2;
+}
+
+.status-strip button {
+  color: #1c2a22;
+}
+
+.ranger-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'park mission'
+    'park challenge'
+    'park destinations';
+}
+
+.mission-panel { grid-area: mission; }
+.park-stage { grid-area: park; }
+.challenge-dock { grid-area: challenge; }
+.destination-list { grid-area: destinations; }
+
+.mission-panel,
+.challenge-dock,
+.destination-list {
+  padding: 12px;
+  overflow: auto;
+}
+
+.mission-panel {
+  background: #fff8ee;
+  box-shadow: inset 4px 0 0 #e2c99a;
+}
+
+.mission-panel p {
+  line-height: 1.45;
+}
+
+.challenge-dock {
+  background: #fbf6ea;
+}
+
+.park-stage {
+  position: relative;
+  min-height: 240px;
+  background: #9ecf8a;
+  overflow: hidden;
+}
+
+.feedback[data-tone='bad'] { color: #7a1f1f; font-weight: 700; }
+.feedback[data-tone='good'] { color: #14532d; font-weight: 700; }
+.hint { background: #fff3bf; border-radius: 10px; padding: 8px; }
+
+.slots { display: flex; gap: 6px; flex-wrap: wrap; }
+.slot {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #1c2a22;
+  border-radius: 6px;
+  background: #fff;
+}
+.slot.is-filled { background: #c47b12; }
+
+.is-highlighted {
+  outline: 3px solid #0b3d91;
+  outline-offset: 2px;
+}
+
+.cell-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.cell-grid button {
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.cell-safe { background: #e5f6d9; }
+.cell-trail { background: #f3ddb0; }
+.cell-water {
+  background-color: #d7f0fb;
+  background-image: repeating-linear-gradient(90deg, #9fd4ee, #9fd4ee 4px, #d7f0fb 4px, #d7f0fb 10px);
+}
+.cell-habitat {
+  background-color: #f3e8ff;
+  background-image: repeating-linear-gradient(45deg, #d7c4e8, #d7c4e8 6px, #f3e8ff 6px, #f3e8ff 12px);
+}
+.cell-buffer {
+  background-color: #efe6cf;
+  background-image: radial-gradient(#6b6258 1.4px, transparent 1.5px);
+  background-size: 8px 8px;
+}
+
+.segment.is-closed { text-decoration: line-through; }
+
+.recovery {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff3bf;
+}
+
+.level-note { font-size: 0.95rem; }
+
+@media (max-width: 860px) {
+  .ranger-body {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+
+  .park-stage {
+    height: 42vh;
+    min-height: 220px;
+    flex: none;
+    order: 1;
+  }
+
+  .mission-panel { order: 0; }
+  .challenge-dock { order: 2; }
+  .destination-list { order: 3; }
+}

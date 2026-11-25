@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --experimental-strip-types --test test/ranger/rules.test.ts"
   },
   "devDependencies": {
     "typescript": "~5.9.3",
